@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+        body {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div>分数:<span id="score">0</span></div>
+    <br />
+    <div>
+        <button id="start">开始</button>
+        <button id="restart">重开</button>
+    </div>
+    <br />
+    <canvas id="main" width="800" height="800" style="background:#000"></canvas>
+</body>
+<script>
+    window.onload = function () {
+        var timer = null,
+            score = 0,
+            food = [],
+            tail = [];
+        function byid(id) {
+            return document.getElementById(id);
+        }
+        function init() {
+            clearInterval(timer);
+            ctx.clearRect(0, 0, c.width, c.height)
+            score = 0;
+            food = [];
+            window.snaker = {
+                length: 5,
+                step: 25,
+                speed: 100,
+                direction: "right",
+                joint: [[225, 225], [200, 225], [175, 225], [150, 225], [125, 225]]
+            }
+            print();
+            autoMove();
+        }
+        function dead() {
+            if (snaker.joint[0][0] < 0 || snaker.joint[0][0] > c.width - snaker.step || snaker.joint[0][1] < 0 || snaker.joint[0][1] > c.height - snaker.step) {
+                init();
+            } else {
+                for (let i = 1; i < snaker.length; i++) {
+                    if (snaker.joint[0][0] == snaker.joint[i][0] && snaker.joint[0][1] == snaker.joint[i][1]) { init() };
+                }
+            }
+        }
+        function eat() {
+            for (let i = 1; i < snaker.length; i++) {
+                if (snaker.joint[0][0] == food[0] && snaker.joint[0][1] == food[1]) {
+                    snaker.joint.push([tail[0], tail[1]]);
+                    snaker.length++;
+                    food = [];
+                    score += 100;
+                };
+            }
+        }
+        function sum(m, n) {
+            return Math.floor(Math.random() * (m - n) + n);
+        }
+        function createFood() {
+            if (food.length <= 0) {
+                food = [sum(1, c.width / snaker.step - 1) * snaker.step, sum(1, c.height / snaker.step - 1) * snaker.step]
+            }
+        }
+        function count() {
+            var scoreSpan = byid("score");
+            scoreSpan.innerHTML = score;
+        }
+        function restart() {
+            ctx.clearRect(0, 0, c.step, c.step)
+            init();
+        }
+        function getKey(keyCode) {
+            switch (keyCode) {
+                case 38:
+                    return "up";
+                case 40:
+                    return "down";
+                case 37:
+                    return "left";
+                case 39:
+                    return "right";
+                default:
+                    return keyCode;
+            }
+        }
+        function autoMove() {
+            timer = setInterval(function () {
+                move({ keyCode: snaker.direction });
+            }, snaker.speed)
+        }
+        function move(e) {
+            var direction = getKey(e.keyCode);
+            snaker.direction = direction;
+            tail = [snaker.joint[snaker.length - 1][0], snaker.joint[snaker.length - 1][1]]
+            ctx.clearRect(snaker.joint[snaker.length - 1][0], snaker.joint[snaker.length - 1][1], snaker.step, snaker.step)
+            for (let i = snaker.length - 1; i > 0; i--) {
+                snaker.joint[i][0] = snaker.joint[i - 1][0];
+                snaker.joint[i][1] = snaker.joint[i - 1][1];
+            }
+            switch (direction) {
+                case "up":
+                    snaker.joint[0][1] -= snaker.step;
+                    break;
+                case "down":
+                    snaker.joint[0][1] += snaker.step;
+                    break;
+                case "left":
+                    snaker.joint[0][0] -= snaker.step;
+                    break;
+                case "right":
+                    snaker.joint[0][0] += snaker.step;
+                    break;
+                default:
+            }
+            print();
+        }
+        function print() {
+            dead();
+            eat();
+            count();
+            createFood();
+            ctx.beginPath();
+            ctx.arc(food[0] + snaker.step / 2, food[1] + snaker.step / 2, snaker.step / 2, 0, 360 * Math.PI / 180, true);
+            ctx.closePath();
+            ctx.fillStyle = "#03a9f4";
+            ctx.fill();
+            for (let i = 0; i < snaker.joint.length; i++) {
+                ctx.fillStyle = i ? "#FFFFFF" : "#FF0000";
+                ctx.fillRect(snaker.joint[i][0], snaker.joint[i][1], snaker.step, snaker.step)
+            }
+        }
+        var c = byid("main");
+        var ctx = c.getContext("2d");
+        var restartButton = byid("restart");
+        var startButton = byid("start");
+        window.addEventListener("keydown", move, false);
+        restartButton.addEventListener("click", restart, false)
+        startButton.addEventListener("click", init, false)
+        init();
+    }
+
+
+    class Game {
+        constructor(snaker) {
+            this.snaker = snaker;
+            this.timer = null;
+        }
+        init() {
+            clearInterval(timer);
+            ctx.clearRect(0, 0, 500, 500)
+            snaker = {
+                x: 250,
+                y: 250,
+                width: 25,
+                height: 25,
+                length: 3,
+                direction: "right"
+            }
+            print();
+            autoMove();
+        }
+    }
+    var snaker = new Game({
+        x: 250,
+        y: 250,
+        width: 25,
+        height: 25,
+        length: 3,
+        direction: "right"
+    });
+</script>
+
+</html>
